@@ -1,0 +1,11 @@
+### Scala template
+.idea
+*.iml
+out
+gen
+target
+project
+*.class
+*.log
+
+
