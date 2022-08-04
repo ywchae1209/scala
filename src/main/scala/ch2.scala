@@ -50,11 +50,14 @@ object ch2 {
       println( s"$i \t:\t${fib(i)}")
     }
 
+    ////////////////////////////////////////////
     val s =Seq(1,2,3,4,5,6,7)
     val s1 =Seq(1,2,3,7,5,6,7)
+
     println( s"sorted: ${isSorted(s, (a:Int,b:Int) => a < b)}, $s")
     println( s"sorted: ${isSorted(s1, (a:Int,b:Int) => a < b)}, $s1")
 
+    ////////////////////////////////////////////
     println( s"find == 5: ${findFirst(s1, (a:Int) => a == 5)} from $s1")
     println( s"find == 9: ${findFirst(s1, (a:Int) => a == 9)} from $s1")
 
