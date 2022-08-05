@@ -94,7 +94,7 @@ object ch3 {
     // with buffer
     def init2[A](as: SList[A]): SList[A] = {
 
-      val buf = new collection.mutable.ListBuffer
+      val buf = new collection.mutable.ListBuffer[A]
 
       @tailrec
       def go(cur: SList[A]): SList[A] = cur match {
@@ -172,7 +172,7 @@ object ch3 {
 
     // with buffer
     def mapWithBuffer[A, B](as: SList[A])(f: A => B): SList[B] = {
-      val buf = new collection.mutable.ListBuffer
+      val buf = new collection.mutable.ListBuffer[B]
 
       @tailrec
       def go(cur: SList[A]): SList[B] = cur match {

@@ -27,12 +27,6 @@ object ch4 {
         case _ => None
       }
 
-    def ap[A,B](oa: Option[A])(f: Option[A => B]): Option[B] =
-      flatMap(oa)(a => map(f)(_(a)))
-
-    def map2[A,B,C](oa: Option[A], ob: Option[B])(f: (A,B) => C): Option[C] =
-      flatMap(oa)(a => map(ob)(b => f(a,b)))
-
     def getOrElse[A](oa: Option[A])(alternative: => A): A =
       oa match {
         case Some(a) => a
@@ -66,17 +60,20 @@ object ch4 {
     def maybe[A,B](f: A => B): A => Option[B] =
       a => may(f(a))
 
+    def ap[A,B](oa: Option[A])(f: Option[A => B]): Option[B] =
+      flatMap(oa)(a => map(f)(_(a)))
+
     // exercise 4.3
     def map2[A,B,C](oa: Option[A], ob: Option[B])(f: (A, B) => C): Option[C] =
       oa.flatMap(a => ob.map(b => f(a,b)))
 
     // exercise 4.4
     def sequence[A](os: List[Option[A]]): Option[List[A]] =
-      os.foldRight(Some(Nil): Option[List[A]])( map2(_, _)( _ +: _) )  // think about Empty-List
+      os.foldRight(Some(Nil): Option[List[A]])( Option.map2(_, _)( _ +: _) )  // think about Empty-List
 
     // exercise 4.5
     def traverse[A,B](a: List[A])(f: A => Option[B]): Option[List[B]] =
-      a.foldRight(Some(Nil):Option[List[B]])((a, b) => map2( f(a), b)( _ +: _))
+      a.foldRight(Some(Nil):Option[List[B]])((a, b) => Option.map2( f(a), b)( _ +: _))
 
     def sequenceWithTraverse[A](os: List[Option[A]]): Option[List[A]] =
       traverse(os)(identity )
