@@ -237,6 +237,59 @@ object ch3 {
     }
   }
 
+  ///////////////////////////////////////////////////////////////////////////////////
+  sealed trait Tree[+A]
+  case class Leaf[A] ( value: A) extends Tree[A]
+  case class Branch[A] ( left: Tree[A], right: Tree[A]) extends Tree[A]
+
+  object Tree {
+    def unit[A]( a: A) : Tree[A] = Leaf(a)
+
+    // exercise 3.25
+    def  size[A](tr: Tree[A]): Int = tr match {
+      case Leaf(_) => 1
+      case Branch(l, r) => size(l) + size(r) + 1
+    }
+
+    // exercise 3.26
+    def maxInt(tr: Tree[Int]): Int = tr match {
+      case Leaf(a) => a
+      case Branch(l, r) => maxInt(l) max maxInt(r)
+    }
+
+    // exercise 3.27
+    def depth[A](tr: Tree[A]): Int = tr match {
+      case Leaf(a) => 1
+      case Branch(l, r) => 1 + (depth(l) max depth(r))
+    }
+
+    // exercise 3.28
+    def map[A,B](tr: Tree[A])(f: A => B): Tree[B] = tr match {
+      case Leaf(a) => Leaf(f(a))
+      case Branch(l, r) => Branch(map(l)(f), map(r)(f))
+    }
+
+    // exercise 3.29
+    def fold[A,B](tr: Tree[A])(f: A => B)(g: (B, B) => B): B = tr match {
+      case Leaf(a) => f(a)
+      case Branch(l, r) => g( fold(l)(f)(g), fold(r)(f)(g))
+    }
+
+    def mapWithFold[A,B](tr: Tree[A])(f: A => B): Tree[B] =
+      fold(tr)(a => Leaf(f(a)): Tree[B])( Branch(_, _) )
+
+    def depthWithFold[A](tr: Tree[A]): Int =
+      fold(tr)(_ => 1)((l, r) => 1 + (l max r))
+
+    def maxIntWithFold(tr: Tree[Int]): Int =
+      fold(tr)(identity)((l, r) => l max r)
+
+    def sizeWithfold[A](tr: Tree[A]): Int =
+      fold(tr)( _ => 1)((l, r) => 1 + l + r )
+
+  }
+
+
   def main(args: Array[String]): Unit = {
 
     // exercise 3.1
