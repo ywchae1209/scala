@@ -2,8 +2,11 @@
 object typeClassExercise {
 
   ////////////////////////////////////////////////////////////////////////////////
+  // 1. type-class ::  has common interface over type-parameter
   trait StringParser[T] { def parse(s: String) : T }
 
+  ////////////////////////////////////////////////////////////////////////////////
+  // 2. type instances :: has specific impl. per type.
   object StringParser {
     implicit object ParseSt extends StringParser[String] {
       override def parse(s: String): String = s
@@ -19,6 +22,7 @@ object typeClassExercise {
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // syntax note)
     //
     //    [T: StringParser] ....
     //    val p = implicitly[StringParser[T]]
@@ -29,6 +33,7 @@ object typeClassExercise {
     //
     ////////////////////////////////////////////////////////////////////////////////
 
+    // 2.1 interface syntax :: type-instance is created dynamically.
     implicit def ParseSeq[T: StringParser]: StringParser[Seq[T]] =
       (s: String) => {
         val p = implicitly[StringParser[T]]
@@ -49,13 +54,13 @@ object typeClassExercise {
         println( s"\tlhs: $lhs, rhs: $rhs")
         p1.parse(lhs) -> p2.parse(rhs)
       }
-
   }
 
   ////////////////////////////////////////////////////////////////////////////////
+  // 3. type-class interface is used by API-caller
 
-  def parseString[T: StringParser](s: String): T =
-    implicitly[StringParser[T]].parse(s)
+  def parseString[T: StringParser](s: String): T = implicitly[StringParser[T]].parse(s)
+  def parseString2[T](s: String)(implicit p:StringParser[T]): T = p.parse(s)
 
   def main(args: Array[String]): Unit = {
     println { parseString[Boolean]("true") }
