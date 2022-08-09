@@ -69,6 +69,29 @@ object typeClassExercise {
 
 //    println { parseString[Seq[(Seq[String], Seq[Int])]]("a,b=1,2,c=2,d,e=3,4") }
 
+    /* output
+      true
+        Seq of true,false,true
+      ArraySeq(true, false, true)
+        lhs: x, rhs: 123
+      (x,123)
+        lhs: x, rhs: 123,1,2,3,4,5
+        Seq of 123,1,2,3,4,5
+      (x,ArraySeq(123, 1, 2, 3, 4, 5))
+        lhs: x,y,z, rhs: 123,1,2,3,4,5
+        Seq of x,y,z
+        Seq of 123,1,2,3,4,5
+      (ArraySeq(x, y, z),ArraySeq(123, 1, 2, 3, 4, 5))
+        Seq of x=1,y=2,z=3
+        lhs: x, rhs: 1
+        lhs: y, rhs: 2
+        lhs: z, rhs: 3
+      ArraySeq((x,1), (y,2), (z,3))
+        lhs: x, rhs: y=123
+        lhs: y, rhs: 123
+      (x,(y,123))
+     */
+
   }
 
 }
