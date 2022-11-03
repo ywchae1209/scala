@@ -10,6 +10,7 @@ object Trampoline {
     final def run: A = Trampoline.run(this)
 
     // evaluate a single layer
+    @tailrec
     final def resume: Either[TailRec[A], A] = this match {
       case Pure(a) => Right(a)
       case Suspend(a) => a().resume
