@@ -323,7 +323,6 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
     }
 ```
 
-* 프로그램에 정의된 type wrapper
 ```scala
 // type wrapper
 
@@ -342,4 +341,60 @@ case object StringType extends ColValType
 case object BytesType extends ColValType
 case object LongStringType extends ColValType   // todo
 case object LongBytesType extends ColValType    // todo
+
 ```
+
+#### oracle 컬럼타입과 지원 여부
+##### Oracle SQL 타입과 java.sql.Types 매핑표 (표준 + 확장 포함)
+- **추가필요한 타입은 요청바람**
+
+| OK  | Oracle SQL 타입                       | 대응되는 `java.sql.Types` | 비고 |
+|-----|-------------------------------------|----------------------------|------|
+|     | **문자형**                             |||
+| O   | CHAR, CHARACTER                     | `Types.CHAR` | 고정길이 문자열 |
+| O   | VARCHAR2, VARCHAR                   | `Types.VARCHAR` | 가변길이 문자열 |
+| O   | LONG                                | `Types.LONGVARCHAR` | 매우 긴 문자열 |
+| O   | NCHAR                               | `Types.NCHAR` | 유니코드 고정 문자열 |
+| O   | NVARCHAR2                           | `Types.NVARCHAR` | 유니코드 가변 문자열 |
+| O   | CLOB                                | `Types.CLOB` | 문자 대용량 객체 |
+| O   | NCLOB                               | `Types.NCLOB` | 유니코드 문자 대용량 객체 |
+|     | **숫자형**                             |||
+| O   | NUMBER, DECIMAL, NUMERIC            | `Types.NUMERIC`, `Types.DECIMAL`, 또는 `Types.INTEGER`, `Types.DOUBLE`, `Types.BIGINT` 등 | 정밀도/스케일에 따라 매핑 |
+| O   | FLOAT                               | `Types.FLOAT` | 부동소수점 |
+| O   | DOUBLE PRECISION                    | `Types.DOUBLE` | 배정밀도 부동소수점 |
+| O   | REAL                                | `Types.REAL` | 단정밀도 부동소수점 |
+| O   | BINARY_FLOAT                        | `Types.FLOAT` | 32비트 IEEE 부동소수점 (Oracle 확장) |
+| O   | BINARY_DOUBLE                       | `Types.DOUBLE` | 64비트 IEEE 부동소수점 (Oracle 확장) |
+|     | **날짜/시간형**                          |||
+| O   | DATE                                | `Types.DATE` 또는 `Types.TIMESTAMP` | Oracle DATE는 시간 포함 |
+| O   | TIMESTAMP                           | `Types.TIMESTAMP` | 초 단위 이하 정밀도 포함 |
+| O   | TIMESTAMP WITH TIME ZONE            | `Types.TIMESTAMP_WITH_TIMEZONE` | 타임존 포함 |
+| O   | TIMESTAMP WITH LOCAL TIME ZONE      | `Types.TIMESTAMP_WITH_LOCAL_TIMEZONE` | 세션 타임존 기준 |
+|     | INTERVAL YEAR TO MONTH              | `Types.OTHER` | Oracle 고유 타입 |
+|     | INTERVAL DAY TO SECOND              | `Types.OTHER` | Oracle 고유 타입 |
+|     | **이진형**                             |||
+| O   | RAW                                 | `Types.BINARY` 또는 `Types.VARBINARY` | 이진 데이터 |
+| O   | LONG RAW                            | `Types.LONGVARBINARY` | 긴 이진 데이터 |
+| O   | BLOB                                | `Types.BLOB` | 이진 대용량 객체 |
+|     | BFILE                               | `Types.OTHER` 또는 `OracleTypes.BFILE` | 외부 파일 참조 (읽기 전용) |
+|     | **객체 및 컬렉션형**                       |||
+|     | OBJECT, STRUCT (사용자 정의 타입)          | `Types.STRUCT` | 사용자 정의 객체 |
+|     | VARRAY, NESTED TABLE                | `Types.ARRAY` | 컬렉션 타입 |
+|     | REF                                 | `Types.REF` | 객체 참조 타입 |
+|     | REF CURSOR                          | `Types.REF_CURSOR` | 결과셋을 반환하는 커서 (JDBC 4.1+) |
+|     | ANYTYPE / ANYDATA / ANYDATASET      | `Types.OTHER` | Oracle 전용 동적 타입 |
+|     | XMLTYPE                             | `Types.SQLXML` (JDBC 4.0+) 또는 `Types.CLOB` | XML 데이터 (DOM 혹은 문자열 형태) |
+|     | JSON                                | `Types.SQLJSON` (JDBC 4.3+) 또는 `Types.CLOB` / `Types.VARCHAR` | Oracle 21c 이상에서 공식 지원 |
+|     | UROWID / ROWID                      | `Types.OTHER` 또는 `OracleTypes.ROWID` | 고유 로우 식별자 |
+|     | **공간(Spatial) / 위치정보형**             |||
+|     | SDO_GEOMETRY                        | `Types.STRUCT` | Oracle Spatial 타입 (좌표, 지오메트리 구조체) |
+|     | SDO_TOPO_GEOMETRY                   | `Types.STRUCT` | 위상지오메트리 |
+|     | SDO_GEORASTER                       | `Types.STRUCT` | 영상 데이터 |
+|     | SDO_POINT_TYPE                      | `Types.STRUCT` | 좌표값 구조체 |
+|     | **기타 특수형**                          |||
+|     | XMLType                             | `Types.SQLXML` 또는 `Types.CLOB` | XML 문서 저장용 |
+|     | JSON                                | `Types.SQLJSON` 또는 `Types.CLOB` / `Types.VARCHAR` | JSON 문서 저장용 |
+|     | URITYPE, HTTPURITYPE                | `Types.VARCHAR` | URI 문자열 |
+|     | OPAQUE (예: SYS.ANYDATA, ORDAudio 등) | `Types.OTHER` | Oracle 확장 바이너리 타입 |
+|     | MLSLABEL                            | `Types.VARCHAR` | Oracle Label Security용 |
+|     | RAW MLSLABEL                        | `Types.BINARY` | 보안 라벨 RAW 버전 |
