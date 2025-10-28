@@ -5,10 +5,10 @@
 
 * 참고: 비유
 > 두 시점의 거주자 조사결과 목록비교를 하는 것처럼 생각해볼 수 있다.
-> 
+>
 > 두개의 거주자 목록이 있는데, 목록은 집주소 순서로 정렬되어 있다.
 > ( 두 목록의 집주소 정렬방식은 동일)
-> 
+>
 > 이때,
 > 정렬키 == 집주소, 컬럼비교 == 거주자로 비유해서 생각하면 쉬을 듯.  
 > 집주소 같고, 거주자도 같으면 변동없음.   
@@ -23,7 +23,7 @@ SQL을 통해 얻어진 ResultSetA와 ResultSetB를 비교한다..
 ```
 
 - DBMS의 정렬기능으로 정렬된 ResultSet을 비교함.
-     ( 비교대상 건수가 매우 클 수 있으므로, Memory적재불가하기 때문)
+  ( 비교대상 건수가 매우 클 수 있으므로, Memory적재불가하기 때문)
 - 비교성능의 상당부분은 DBMS의 정렬성능과 데이터의 전송속도에 영향 받음
 
 ## 2.	비교조건
@@ -178,7 +178,7 @@ SQL1과 SQL2의 대응컬럼타임이
 프로그램은 정렬조건에 따른 정렬 순서를 알아야 한다.
 ```
 
-* SortKeyA와 SortKeyB가 다를 경우, 작은 쪽의 SortKey를 이동하면서 일치하는 상대방 SortKey를 찾아야 하므로. 
+* SortKeyA와 SortKeyB가 다를 경우, 작은 쪽의 SortKey를 이동하면서 일치하는 상대방 SortKey를 찾아야 하므로.
 * 이를 위해, 오름차순/내림차수, Null값의 정렬순서 등 정렬순서 파악을 위한 설정이 필요했다.
 
 ## 비교
@@ -187,7 +187,7 @@ SQL1과 SQL2의 대응컬럼타임이
 ```
   대응하는 컬럼의 타입이 실수형 또는 시각(Time)형인 경우, 허용오차를 지정할 수 있다.
 ```
-* 같은 실수(real number)라도 DBMS에 따라 다른 값을 저장하는 경우(DB 내의 저장방식에 따라 다름) 있으며, 
+* 같은 실수(real number)라도 DBMS에 따라 다른 값을 저장하는 경우(DB 내의 저장방식에 따라 다름) 있으며,
 * 시각도 nano-second, milli-second 단위저장 등 저장방식에 따라 다른 값을 저장하는 경우가 있다.
 
 
@@ -225,7 +225,7 @@ ResultSet이 Cursor이라는 특성을 가져서 생긴 제한으로,
 메모리에 문제가 보이면, 실행시 JVM메모리 옵션을 조정해보도록 하자. (각자 찾아보자)
 ```
 
-#### 2.	메모리 
+#### 2.	메모리
 * 필요한 만큼만 지연로딩(통신부담경감) 및 지연할당, zero-메모리 복제(메모리사용량 최소화)
 
 #### 3.	비교연산 최적화
@@ -250,11 +250,13 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
 
 #### 지원컬럼 타입
 
+<< 아래 >>
 * `Types.xxx`는 java.sql.Types에 정의된 컬럼타입이고,
 * `BytesType`은 프로그램내에서 정의한 타입 wrapper이다.
 * 타입 wrapper를 사용한 이유는 java.sql.Types에 대응되는 DBMS 타입이 고정적이지 않아서 임.
 
 ```scala
+// 지원하는 java.sql.Types
       Types.BIT             -> (BytesType,   getAsBytes),
       Types.BOOLEAN         -> (BooleanType, getAsBoolean),
 
@@ -321,3 +323,23 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
     }
 ```
 
+* 프로그램에 정의된 type wrapper
+```scala
+// type wrapper
+
+case object BooleanType extends ColValType
+case object IntType extends ColValType
+case object LongType extends ColValType
+case object BigIntType extends ColValType
+case object DoubleType extends ColValType
+case object DecimalType extends ColValType
+case object DateType extends ColValType
+case object TimeType extends ColValType
+case object TimestampType extends ColValType
+case object OffTimeType extends ColValType
+case object OffTimestampType extends ColValType
+case object StringType extends ColValType
+case object BytesType extends ColValType
+case object LongStringType extends ColValType   // todo
+case object LongBytesType extends ColValType    // todo
+```
