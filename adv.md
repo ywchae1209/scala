@@ -248,3 +248,76 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
 ```
 
 
+#### 지원컬럼 타입
+
+* `Types.xxx`는 java.sql.Types에 정의된 컬럼타입이고,
+* `BytesType`은 프로그램내에서 정의한 타입 wrapper이다.
+* 타입 wrapper를 사용한 이유는 java.sql.Types에 대응되는 DBMS 타입이 고정적이지 않아서 임.
+
+```scala
+      Types.BIT             -> (BytesType,   getAsBytes),
+      Types.BOOLEAN         -> (BooleanType, getAsBoolean),
+
+      // check Integer Type
+      Types.TINYINT         -> (IntType, getAsInt),
+      Types.SMALLINT        -> (IntType, getAsInt),
+      Types.INTEGER         -> (IntType, getAsInt),
+      Types.BIGINT          -> (LongType, getAsLong), // BigInt --> Long
+
+      // check Real Type
+      Types.FLOAT           -> (DoubleType, getAsDouble),
+      Types.REAL            -> (DoubleType, getAsDouble),
+      Types.DOUBLE          -> (DoubleType, getAsDouble),
+
+      Types.DECIMAL         -> (DecimalType, getAsDecimal),
+
+      // check String Type
+      Types.CHAR            -> (StringType, getAsString),
+      Types.VARCHAR         -> (StringType, getAsString),
+      Types.NCHAR           -> (StringType, getAsString),
+      Types.NVARCHAR        -> (StringType, getAsString),
+
+      // check Long String Type
+      Types.LONGVARCHAR     -> (LongStringType, getAsLongString),
+      Types.LONGNVARCHAR    -> (LongStringType, getAsLongString),
+
+      Types.CLOB            -> (LongStringType, getLobAsLongString),
+      Types.NCLOB           -> (LongStringType, getLobAsLongString),
+
+      // check Binary Type
+      Types.BINARY          -> (BytesType, getAsBytes),
+      Types.VARBINARY       -> (BytesType, getAsBytes),
+
+      // check Long Binary Type
+      Types.LONGVARBINARY   -> (LongBytesType, getAsLongBytes),
+      Types.BLOB            -> (LongBytesType, getLobAsLongBytes),
+
+      // check Time type
+      Types.DATE            -> (DateType, getAsDate),
+      Types.TIME            -> (TimeType, getAsTime),
+      Types.TIMESTAMP       -> (TimestampType, getAsTimestamp),
+
+      Types.TIME_WITH_TIMEZONE        -> (OffTimeType, getAsOffsetTime),
+      Types.TIMESTAMP_WITH_TIMEZONE   -> (OffTimestampType, getAsOffsetDateTime),
+```
+
+* Type Note
+  타입만으로 처리방식을 확정할 수 없는 사례
+```scala
+   // Types.NUMERIC인 경우, 정수인지, 실수인지 타입만으로 알수 없으므로
+   // scale과 precision을 보고 처리할 타입을 정함.
+    private def numericColType(cs: ColShape): (ColValType, Getter) = {
+
+      require(cs.typeCode == Types.NUMERIC, s"not Numeric type : ${cs}")
+
+      val ret = if (cs.scale != 0)  { DecimalType -> getAsDecimal }
+      else {
+        if (cs.precision == 0)      { DecimalType -> getAsDecimal }
+        else if (cs.precision > 18) { BigIntType -> getAsBigInt }
+        else if (cs.precision <= 9) { IntType -> getAsInt }
+        else                        { LongType -> getAsLong }
+      }
+      ret
+    }
+```
+
