@@ -136,9 +136,42 @@ LOB컬럼의 insert는 SQL문에 직접 쓸 수 없고,
 2. PL/SQL로 처리(파일로 써놓고 해당컬럼으로 읽어들이도록 하는 식)
 해야 함
 ```
-* 파일 여러개로 처리할 경우, 관리문제 예상되므로, Data파일내에 두고 program으로 처리하는 방식으로 구현할 예정
 * 파일 size문제로 binary형식의 보관을 해야 함 ( Bson같은 포맷으로 )
 * 이 경우, 별도 viewer 내지 editor필요할지 따져봐야 함. ( Bson은 표준적 포맷이라 있을 법도 하고.)
+
+### 출력의 처리방식
+
+* 판단결과를 표준출력으로 print한다.
+* 출력결과는 파일로 기록하는 것은 pipe (`|`)등을 이용하면 된다. ( 아래 명령 sample 참고)
+
+> 파일쓰기 기능을 굳이 개발할 경우, 여러가지 문제발생 소지만 존재하므로
+> Unix의 철학에 따른 처리방식으로 이와 같이 처리하기로 함.
+
+* exception log는 Java Virtual Machine(JVM)의 log설정에 따라 logging한다.
+
+```bash
+# out_file로 기록
+some_command > out_file 
+
+# 100M씩 분할하여 기록
+some_command | split -b 100M - output_part_
+
+# 100000라인씩 분할하여 기록
+some_command | split -l 100000 - output_part_
+
+# 화면 출력하면서 100M씩 분할하여 기록
+some_command | tee >(split -b 100M - output_part_)
+
+# 압축하여 100M씩 기록
+some_command | gzip | split -b 100M - output.gz.part_
+
+# 분할한 파일을 합칠때
+cat output_part_* > full_output.txt
+
+# 분할압축된 파일을 풀어서 합칠때
+cat output.gz.part_* | gunzip > full_output.txt
+```
+
 
 # [ 상세 ]
 
