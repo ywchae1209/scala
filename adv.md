@@ -557,3 +557,16 @@ case object LongBytesType extends ColValType    // todo
 |     | OPAQUE (예: SYS.ANYDATA, ORDAudio 등) | `Types.OTHER` | Oracle 확장 바이너리 타입 |
 |     | MLSLABEL                            | `Types.VARCHAR` | Oracle Label Security용 |
 |     | RAW MLSLABEL                        | `Types.BINARY` | 보안 라벨 RAW 버전 |
+
+* 주의 : 타입의 중요성과 타입지원의 의미
+
+> URI는 uri-encoding으로 같은 값이 다른 문자열로 저장될 수 있다.
+> 
+> URI타입인지 확인하는 기능은 (아직) 구현되어 있지 않으므로,  
+> 두 컬럼이 URITYPE 타입인 경우, Types.VARCHAR로 인식하여 문자열 비교를 하게 된다.
+> ( 희박하겠으나, 있을 수 있는 일)
+> 
+> 마찬가지로, URI타입컬럼(현 버전은 Types.VARCHAR로 인식)과 문자열 컬럼을 비교도  
+> 문자열 비교방식으로 비교한다. (즉, 틀릴 수 있는 비교를 하게 된다)
+ 
+  
