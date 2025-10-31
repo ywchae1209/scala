@@ -90,11 +90,24 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
 
 **json이나 yaml이 편하다고 생각해서, json 내지 yaml포맷 지원을 원하면 요청하기 바란다.**
 
-```hocon
-    TableA {
-      driver = "oracle.jdbc.OracleDriver"
-      jdbcUrl = "jdbc:oracle:thin:@//172.16.0.51:1521/orclpdb"
-      username = "cdctest"
+```hocon    
+    # hocon 포맷으로 작성한 설정파일의 예이다.
+    # 표기법 ------------------------------------------- 
+    # key { value }
+    # key = value   << 권장
+    # key : value
+    # 주석 ---------------------------------------------
+    # `#`, `//'으로 시작하는 line 주석을 달 수 있다.
+    # /* */로 여러 줄에 걸친 주석을 달 수도 있다.
+    # 문자열 -------------------------------------------
+    # sql문을 여러 줄에 걸쳐서 작성해야 할 경우, """ sql statement """ 로 작성하면 된다.    
+
+    # pool과 pool의 하위 설정은 생략 할 수 있다. (DB connection pool설정을 건드릴 필요가 없다면)
+
+    tableA = {
+      driver = "com.mysql.cj.jdbc.Driver",
+      jdbcUrl = "jdbc:mysql://192.168.0.68:3306/mysqldb",
+      username = "cdctest",
       password = "cdctest"
       pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
       sql = """
@@ -105,13 +118,13 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
                  c3 DESC
       """
     }
- 
-    TableB {
+
+    tableB {
       driver = "oracle.jdbc.OracleDriver"
       jdbcUrl = "jdbc:oracle:thin:@//172.16.0.52:1521/orclpdb"
       username = "cdctest"
       password = "cdctest"
-      pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
+      # pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
       sql = """
         SELECT d1, d2, d3, d4, d5
         FROM tableB
@@ -120,15 +133,17 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
                  d3 DESC
       """
    }
-    compare {
-      sortKey = [ { colA: 1, colB: 1, ascending: false, nullAsSmallest: true },
-                  { colA: 2, colB: 2, ascending: false, nullAsSmallest: false, tolerance: { milli: 5 } },
-                  { colA: 3, colB: 3, ascending: false, nullAsSmallest: false, tolerance: { delta: 0.001 } } ]
- 
-      compCols = [ { colA: 4, colB: 4 },
-                   { colA: 5, colB: 5, tolerance: { delta: 0.01 } } ]
-    }
 
+   # tolerance는 생략가능하다. (허용오차 없이 비교하려면)
+   # compCols도 생략가능하다. (sortKey만 비교하면 되는 경우도 있으니.)
+
+   compare {
+    sortKey = [ { colA: 1, colB: 1, ascending: false, nullAsSmallest: true },
+                { colA: 2, colB: 2, ascending: false, nullAsSmallest: false, tolerance: { milli: 5 } },
+                { colA: 3, colB: 3, ascending: false, nullAsSmallest: false, tolerance: { delta: 0.001 } } ]
+    compCols = [ { colA: 4, colB: 4 },
+                 { colA: 5, colB: 5, tolerance: { delta: 0.01 } } ]
+   }
 ```
 ### 1.	비교대상 TableA와 TableB를 생성하는 방법에 대한 설정
 
