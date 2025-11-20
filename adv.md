@@ -802,15 +802,18 @@ case object LongBytesType extends ColValType
 > 문자열 비교방식으로 비교한다. (즉, 틀릴 수 있는 비교를 하게 된다)
 
 #### FAQ ?
-1. DB의 encoding ?
+1. **DB의 encoding ?**
   > 영향받지 않음. (jdbc/JVM의 encoding 방식에 따름 : UTF-16)   
   > endian ? 당연히 영향 받지 않음 (질문자체가 non-sense)
    
-2. select `*` from table 같은 동적 조건을 제한하는 이유.
+2. select `*` from table 같은 **동적 조건을 제한하는 이유**
   > 동적으로 결정되는 정보는 `그 정보가 항상 일관되게 같다`라는 가정이 충족되어야 한다. (멱등성이라고 한다.)   
   > 이런 류의 편의 기능은 UI 수준에서 제공되어야 하는 기능이고, core기능에서는 허용하면 안되는 기능이다.(매우 상식적인 사항)  
 
-3. any question ??
+3. **비교결과의 Json 출력 참고**
+  > **NDJson** (New-line Delimited Json)임. ( Json은 문자열 필드에 줄바꿈을 직접 삽입하지 못하기 때문에 가능한 방식)  
+  > 따라서 모든 New-line의 **시작점**은 유형을 나타내는 같은 문자열로 시작된다고 봐도 된다.   
+  > 즉, grep으로 filtering하시면 된다는 것.(우연히 같은 내용이 중간에 등장할까 걱정할 필요없이..)
 
 # 프로그램 사용방법
 * 옵션 등은 달라질 수 있음
