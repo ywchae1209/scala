@@ -803,12 +803,12 @@ case object LongBytesType extends ColValType
 
 #### FAQ ?
 1. DB의 encoding ?
-  > 영향받지 않음. (jdbc/JVM의 encoding 방식에 따름 : UTF-16)
+  > 영향받지 않음. (jdbc/JVM의 encoding 방식에 따름 : UTF-16)   
   > endian ? 당연히 영향 받지 않음 (질문자체가 non-sense)
    
 2. select `*` from table 같은 동적 조건을 제한하는 이유.
-  > 동적으로 결정되는 정보는 `그 정보가 항상 일관되게 같다`라는 가정이 충족되어야 한다. (멱등성이라고 한다.)  
-  > 이런 류의 편의 기능은 UI 수준에서 제공되어야 하는 기능이고, core기능에서는 허용하면 안되는 기능이다.(매우 상식적인 사항)
+  > 동적으로 결정되는 정보는 `그 정보가 항상 일관되게 같다`라는 가정이 충족되어야 한다. (멱등성이라고 한다.)   
+  > 이런 류의 편의 기능은 UI 수준에서 제공되어야 하는 기능이고, core기능에서는 허용하면 안되는 기능이다.(매우 상식적인 사항)  
 
 3. any question ??
 
