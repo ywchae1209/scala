@@ -812,3 +812,62 @@ case object LongBytesType extends ColValType
 
 3. any question ??
 
+# 프로그램 사용방법
+* 옵션 등은 달라질 수 있음
+
+## << 사용방법 >>
+```
+java -jar TableDiff_0.4.jar [실행옵션]
+
+  -c, --conf <file>    config file path. format: HOCON (required)
+  -o, --out <format> one of [json | bin] (required) <<< (compare) 비교결과를 출력하라는 것.
+  -i  --in <format>   one of [json | bin]           <<  (applyTo) format으로 지정한 유형의 입력을 처리하라는 것
+  -f  --from <file>    apply data from file-path(when omitted, from stdin)
+  -h, --help             show this help message
+```
+### * 옵션 주의사항
+```
+   1. --in 과 --out 중 하나, --conf는 반드시 주어야 함.
+   2. --in 과 --out 는 동시에 쓸 수 없음. (한가지 용도로 동작)
+```
+
+### 1) 비교할 때
+```
+    java -jar TableDiff_0.4.jar -c configFile -o json > 저장할_파일
+```
+* 비교 결과를 stdout으로 출력
+
+####  * 이스터 에그 (?)
+```
+    java -jar TableDiff_0.4.jar -c _sample -o json 
+```
+* 프로그램내에 포함된 샘플 설정파일로 비교 진행 ( _sample은 매직워드 )
+
+### 2) 적용할 때
+```
+    java -jar TableDiff_0.4.jar -c configFile -i json -f dataFile
+```
+
+* dataFile은 앞 1) 에서 저장한 파일
+* -f 옵션을 안주면, stdin으로 입력받는 것으로 작업
+
+
+#### * 설정에서 
+```
+      use.db = "tableA" --> tableA에서 사용한 DB접속정보 사용
+      use.db = "tableB" --> tableA에서 사용한 DB접속정보 사용
+      use.db = "mock"  --> DB접속없이 시뮬레이션 한 결과 출력 (mock-up DB)
+```
+
+#### * 이스터 에그 (?)
+```
+    java -jar TableDiff_0.4.jar -c _sample -o json -f _sample
+```
+* 프로그램내에 포함된 샘플 Data파일과 mockup-DB를 이용하여 후처리 진행 표시
+
+
+
+
+
+     :: 프로그램내에 포함된 샘플 Data파일과 mockup-DB를 이용하여 applyTo 진행
+     ( _sample은 매직워드 )
