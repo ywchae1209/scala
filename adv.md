@@ -1,5 +1,3 @@
-
-
 # [ 요건 ]
 두 개의 DB_A과 DB_B 있는 TableA과 TableB의 Row들을 비교하는 기능
 
@@ -9,7 +7,7 @@
 >
 > 두개의 거주자 목록이 있는데, 목록은 집주소 순서로 정렬되어 있다.  
 > ( 두 목록의 집주소 정렬방식은 동일해야 한다. <-- 목록은 앞에서 뒤로 한번만 읽는다. )  
-> ( 같은 집주소에 여러 집이 있으면 안된다. )  
+> ( 같은 집주소에 여러 집이 있으면 안된다. )
 >
 > 이때,
 > 정렬키 == 집주소, 컬럼비교 == 거주자로 생각하면 쉬을 듯.  
@@ -25,7 +23,7 @@
 > 무엇을 반환(`1`을 반환해야 함)하고,   
 > 무엇을 남겨서(`2`를 남겨서 `3`과 비교해야함) 진행할 지 결정해야 한다.  
 > 즉, 작은 쪽을 반환하고 큰쪽을 남겨서 다음 비교를 해야 하므로  
-> 대소비교(정렬방식)을 알아야 하는 것이다.  
+> 대소비교(정렬방식)을 알아야 하는 것이다.
 
 * 참고3: 개별 컬럼들의 정렬 순서가 필요한 이유
 
@@ -52,7 +50,7 @@ SQL을 통해 얻어진 ResultSetA와 ResultSetB를 비교한다..
 ```
 ResultSetA과 ResultSetB는 **같은 SortKey 조건** 으로 정렬되어야 한다.
 ```
-- 정렬된 두 집합비교이므로, 같은 정렬 조건이어야 함. ( 각기 다른 정렬조건이면 비교 불가)  
+- 정렬된 두 집합비교이므로, 같은 정렬 조건이어야 함. ( 각기 다른 정렬조건이면 비교 불가)
 - (이해가 안된다면, 도입의 설명을 다시 읽어보자.)
 
 ```
@@ -70,10 +68,10 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
 
 ## 3.	비교결과의 분류
 
-|           | same SortKey       | different SortKey  |
-|-----------|--------------------|--------------------|
-| same cols | same               | update             |
-| diff cols | onlyInA or onlyInB | onlyInA or onlyInB |
+|           | same SortKey | different SortKey   |
+|-----------|--------------|---------------------|
+| same cols | same         | onlyInA or onlyInB  |
+| diff cols | changed      | onlyInA or onlyInB  |
 
 
 설명:
@@ -84,30 +82,15 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
 아래의 입력은 예시이며, 바뀔 수 있음. ( 이름이 마음에 안든다던가... )
 
 * 형식에 대한 고민.
-> * json은 여러줄에 걸친 문자열입력이 제한적이어서, sql문을 보기좋게 작성하기 어렵다.   
+> * json은 여러줄에 걸친 문자열입력이 제한적이어서, sql문을 보기좋게 작성하기 어렵다.
 > * yaml은 한줄에 여러 필드를 나열할 수 없어서, 세로로 불필요하게 길어진다.
 > * hocon은 간결하고 두가지 모두 가능한 포맷이어서, hocon을 쓰기로 한다.
 
-**json이나 yaml이 편하다고 생각해서, json 내지 yaml포맷 지원을 원하면 요청하기 바란다.**
-
-```hocon    
-    # hocon 포맷으로 작성한 설정파일의 예이다.
-    # 표기법 ------------------------------------------- 
-    # key { value }
-    # key = value   << 권장
-    # key : value
-    # 주석 ---------------------------------------------
-    # `#`, `//'으로 시작하는 line 주석을 달 수 있다.
-    # /* */로 여러 줄에 걸친 주석을 달 수도 있다.
-    # 문자열 -------------------------------------------
-    # sql문을 여러 줄에 걸쳐서 작성해야 할 경우, """ sql statement """ 로 작성하면 된다.    
-
-    # pool과 pool의 하위 설정은 생략 할 수 있다. (DB connection pool설정을 건드릴 필요가 없다면)
-
-    tableA = {
-      driver = "com.mysql.cj.jdbc.Driver",
-      jdbcUrl = "jdbc:mysql://192.168.0.68:3306/mysqldb",
-      username = "cdctest",
+```hocon
+    TableA {
+      driver = "oracle.jdbc.OracleDriver"
+      jdbcUrl = "jdbc:oracle:thin:@//172.16.0.51:1521/orclpdb"
+      username = "cdctest"
       password = "cdctest"
       pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
       sql = """
@@ -118,13 +101,13 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
                  c3 DESC
       """
     }
-
-    tableB {
+ 
+    TableB {
       driver = "oracle.jdbc.OracleDriver"
       jdbcUrl = "jdbc:oracle:thin:@//172.16.0.52:1521/orclpdb"
       username = "cdctest"
       password = "cdctest"
-      # pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
+      pool = { maxPoolSize: 2, minIdle: 2, setIdleTimeoutMs: 60000, connectionTimeoutMs: 30000 }
       sql = """
         SELECT d1, d2, d3, d4, d5
         FROM tableB
@@ -133,21 +116,40 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
                  d3 DESC
       """
    }
-
-   # tolerance는 생략가능하다. (허용오차 없이 비교하려면)
-   # compCols도 생략가능하다. (sortKey만 비교하면 되는 경우도 있으니.)
-
+   ### 비교방법 설정 ( how to compare )
    compare {
-    sortKey = [ { colA: 1, colB: 1, ascending: false, nullAsSmallest: true },
-                { colA: 2, colB: 2, ascending: false, nullAsSmallest: false, tolerance: { milli: 5 } },
-                { colA: 3, colB: 3, ascending: false, nullAsSmallest: false, tolerance: { delta: 0.001 } } ]
-    compCols = [ { colA: 4, colB: 4 },
-                 { colA: 5, colB: 5, tolerance: { delta: 0.01 } } ]
+      sortKey = [ { colA: 1, colB: 1, ascending: false, nullAsSmallest: true },
+                  { colA: 2, colB: 2, ascending: false, nullAsSmallest: false, tolerance: { milli: 5 } },
+                  { colA: 3, colB: 3, ascending: false, nullAsSmallest: false, tolerance: { delta: 0.001 } } ]
+ 
+      compCols = [ { colA: 4, colB: 4 },
+                   { colA: 5, colB: 5, tolerance: { delta: 0.01 } } ]
    }
+    
+   ### 처리방법 설정 ( hot to applyTo target DB) 
+   # used format
+    #{"type":"Change","uuid":"fbfd2808-91bc-4c53-8070-0f4a7f326e93","rowA":{"keys":[{"kind":"Decimal","idx":1,"val":"2"}],"cols":[{"kind":"Decimal","idx":2,"val":"5120"},{"kind":"LongString","idx":3}]},"rowB":{"keys":[{"kind":"Decimal","idx":1,"val":"2"}],"cols":[{"kind":"Decimal","idx":2,"val":"5120"},{"kind":"LongString","idx":3}]}}
+
+  Change = {                            # 처리할 대상 json ( "type" = "Change" 인 json과 부속 "Ext")
+    use.db = "mock"                     # use.db = "tableA" | "tableB" | "mock" 
+    table = "TB_CLOB_DIFF"
+    action = "update"                   # action = "insert" | "update" | "delete"
+    batch = 10
+    cols = {                            # "insert" 또는 "update"시의 column
+        S_KEY1 = "rowA.keys.1"          
+        C_SIZE = "rowA.cols.2"
+        C_CLOB = "rowA.cols.3"
+    }
+    where = {                           # "delete" 또는 "update" 시의 조건 컬럼
+        S_KEY1 = "rowB.keys.1"
+    }
+}
+
+    
+
 ```
 ### 1.	비교대상 TableA와 TableB를 생성하는 방법에 대한 설정
 
-두 DB에 접속할 수 있는 정보
 ```hocon
     TableA {
       driver = "oracle.jdbc.OracleDriver"
@@ -179,6 +181,7 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
       """
    }
 ```
+
 ----
 
 하나씩 살펴보자.
@@ -186,7 +189,7 @@ Order by 절에서 사용된 컬럼들 외에 RowA와 RowB에서 같기를 기�
 driver = "oracle.jdbc.OracleDriver"
 ```
 * DBMS 종류에 따라 사용할 JDBC Driver이름.개발자에게 문의하자.
- 
+
 ```hocon
 jdbcUrl = "jdbc:oracle:thin:@//172.16.0.51:1521/orclpdb"
 username = "cdctest"
@@ -260,22 +263,20 @@ sql = """
 
 
 
-## [ 출력 ]
+## [ compare 결과 출력 ]
 
 아래와 같이 분류된 결과를 포함한 data를 print-out
 
 ```scala
 case class OnlyInA[T](row: T) extends Result[T]
 case class OnlyInB[T](row: T) extends Result[T]
-case class Update[T](rowA: T, rowB: T) extends Result[T]
+case class Change[T](rowA: T, rowB: T) extends Result[T]
 case class Same[T](rowA: T, rowB: T) extends Result[T]
 ```
 
 * Json, Bson 등으로 출력하도록 할 예정
 * 파일로 기록하는 기능은 shell의 redirect를 사용하면 될테니.. 굳이 넣을 필요 없을 듯.
 
-## [ 후처리 ]
-* 후처리:: 추가 필요 ( todo )
 
 ### 주의: SQL문으로 치환할 수 없는 데이터 처리 (LOB 등의 경우)
 ```
@@ -287,15 +288,71 @@ LOB컬럼의 insert는 SQL문에 직접 쓸 수 없고,
 * 파일 size문제로 binary형식의 보관을 해야 함 ( Bson같은 포맷으로 )
 * 이 경우, 별도 viewer 내지 editor필요할지 따져봐야 함. ( Bson은 표준적 포맷이라 있을 법도 하고.)
 
-### 출력의 처리방식 (후처리결과의 저장방법 )
+### 처리결과의 format ( serialzie & deserialze )
+
+1. 업계의 표준 형식을 사용하기로 한다. ( json )
+2. 최대한 간결한 구조로 ( 읽기 쉽도록)
+3. 알아야하는 구조의 갯수는 최소화 (2개 :: 판정결과와 Ext)
+3. Large 데이터(Lob)의 분할 (Ext)
+
+[ 유형 1]
+* 비교결과 정보 ("OnlyInA" | "OnlyInB" | "Same" | "Change")
+
+``` hocon
+{
+  "type": "Change",                      # "OnlyInA" | "OnlyInB" | "Same" | "Change" 
+  "uuid": "086b90e0-bce0-43e4-9d2e-877eb55be45d",
+  "rowA": {                              # tableA의 row
+    "keys": [                            # 정렬비교에 사용한 컬럼
+      { "kind": "Decimal", "idx": 1, "val": "1" }
+    ],
+    "cols": [                            # 값비교에 사용된 컬럼
+      { "kind": "Bytes",     "idx": 2, "val": "AQIDBAUGBwgJCgsMDQ4PEA==" }, # binary데이타는 base64로 인코딩
+      { "kind": "LongBytes", "idx": 3 },  # LongByte, LongString의 Ext json에 값이 담긴다.
+      { "kind": "LongBytes", "idx": 4 }
+    ]
+  },
+  "rowB": {                              # tableB의 row
+    "keys": [
+      { "kind": "Decimal", "idx": 1, "val": "1" }
+    ],
+    "cols": [
+      { "kind": "Bytes",     "idx": 2, "val": "AQIDBAUGBwgJCgsMDQ4PEA==" },
+      { "kind": "LongBytes", "idx": 3 },
+      { "kind": "LongBytes", "idx": 4 }
+    ]
+  }
+}
+```
+
+[ 유형 2]
+* `유형 1`에 Large Column이 포함된 경우에 함께 저장되는 정보
+
+```hocon
+{
+  "type": "Ext",                         # Ext 유형
+  "isBin": true,                         # raw에 담긴 데이터가 binary인지 여부
+  
+  # locator 정보 :: Ext의 값(raw)이 어떤 판정(OnlyInA, ..)의 어떤 col에 해당하는 지
+  "uuid": "086b90e0-bce0-43e4-9d2e-877eb55be45d", 
+  "in": "rowA",
+  "col": 3,
+  
+  # partition 정보 : 몇개의 Ext로 분할되었는지(all), 그중 몇번째인지 (num -- 0부터시작하는 순번)
+  "all": 1,
+  "num": 0,
+  "raw": "TE9ORyBSQVcgU0FNUExFIERBVEE="
+}
+
+```
+
+### 비교결과 출력의 사용
 
 * 판단결과를 표준출력으로 print한다.
 * 출력결과는 파일로 기록하는 것은 pipe (`|`)등을 이용하면 된다. ( 아래 명령 sample 참고)
 
-> 파일쓰기 기능을 굳이 개발할 경우, 여러가지 문제발생 소지만 존재하므로
+> 파일쓰기 기능을 굳이 개발할 경우, 여러가지 문제발생 소지만 존재하므로  
 > Unix의 철학에 따른 처리방식으로 이와 같이 처리하기로 함.
-
-* exception log는 Java Virtual Machine(JVM)의 log설정에 따라 logging한다.
 
 ```bash
 # out_file로 기록
@@ -320,7 +377,119 @@ cat output_part_* > full_output.txt
 cat output.gz.part_* | gunzip > full_output.txt
 ```
 * shell 사용법은 따로 공부해 두자.
-  
+
+
+## [ 후처리 : ApplyTo]
+
+### 1.	후처리 작업 지시
+
+```hocon
+  ### 처리방법 설정 ( hot to applyTo target DB)
+  #{"type":"Change","uuid":"fbfd2808-91bc-4c53-8070-0f4a7f326e93","rowA":{"keys":[{"kind":"Decimal","idx":1,"val":"2"}],"cols":[{"kind":"Decimal","idx":2,"val":"5120"},{"kind":"LongString","idx":3}]},"rowB":{"keys":[{"kind":"Decimal","idx":1,"val":"2"}],"cols":[{"kind":"Decimal","idx":2,"val":"5120"},{"kind":"LongString","idx":3}]}}
+
+  Change = {                            # 처리할 대상 json ( "type" = "Change" 인 json과 부속 "Ext")
+    use.db = "mock"                     # use.db = "tableA" | "tableB" | "mock"
+    
+    # 
+    table = "TB_CLOB_DIFF"
+    action = "update"                   # action = "insert" | "update" | "delete"
+    batch = 10                          # batch단위 (생략하면 10. Large컬럼이 있으면 작은 값으로. 아니면 512, 1024 정도)
+    
+    cols = {                            # "insert" 또는 "update"시의 column
+      S_KEY1 = "rowA.keys.1"          
+      C_SIZE = "rowA.cols.2"
+      C_CLOB = "rowA.cols.3"
+    }
+    
+    where = {                           # "delete" 또는 "update" 시의 조건 컬럼
+      S_KEY1 = "rowB.keys.1"
+    }
+  }
+```
+
+### DB connection 설정
+1. `use.db`를 설정할 경우, `tableA` 또는 `tableB`의 접속정보를 이용하거나, `mock` (DBMS관련 호출을 화면에 출력하는 모드)
+2. 만약, 다른 DB를 사용하고 싶다면 use.db 대신 아래의 정보를 쓰면 된다.
+3. 1과 2의 설정이 모두 주어지면, 2의 설정을 사용.
+```hocon
+  Change = {                            # 처리할 대상 json ( "type" = "Change" 인 json과 부속 "Ext")
+    # 이렇게 직접 지정할 수도 있다.
+    driver = "oracle.jdbc.OracleDriver"
+    jdbcUrl = "jdbc:oracle:thin:@//172.16.0.51:1521/orclpdb"
+    username = "cdctest"
+    password = "cdctest"
+    
+    table = "TB_CLOB_DIFF"
+    action = "update"                   # action = "insert" | "update" | "delete"
+    batch = 10                          # insert할 batch단위 ( Large 가 포함된 경우, 작은 값으로. 아니면 512, 1024 정도)
+    
+    cols = {                            # "insert" 또는 "update"시의 column
+      S_KEY1 = "rowA.keys.1"          
+      C_SIZE = "rowA.cols.2"
+      C_CLOB = "rowA.cols.3"
+    }
+    
+    where = {                           # "delete" 또는 "update" 시의 조건 컬럼
+      S_KEY1 = "rowB.keys.1"
+    }
+  }
+```
+
+### use.db = "mock"
+
+* 아래와 같은 정보를 볼 수 있다.
+* DB에 어떤 요청을 하는지 일일이 추적할 수 있도록 하기 위한 기능 (for developer & tester)
+
+> Tip.   
+> applyTo에서 문제가 발생하면, use.db 값을 바꿔가면서 어떤 API 호출이 있는지 1:1 비교를 해보자.
+
+```
+Mark:	[Run] ApplyTo ====
+Mark:	UPDATE TB_CLOB_DIFF SET C_CLOB = ?, S_KEY1 = ?, C_SIZE = ? WHERE S_KEY1 = ?	:::	C_CLOB(1) <--- rowA.cols.3 (), S_KEY1(2) <--- rowA.keys.1 (), C_SIZE(3) <--- rowA.cols.2 (), S_KEY1(4) <--- rowB.keys.1 ()
+Mark:	[Run] use sample data.
+Mark:	{"type":"Change","uuid":"086b90e0-bce0-43e4-9d2e-877eb55be45d","rowA":{"keys":[{"kind":"Decimal","idx":1,"val":"1"}],"cols":[{"kind":"Bytes","idx":2,"val":"AQIDBAUGBwgJCgsMDQ4PEA=="},{"kind":"LongBytes","idx":3},{"kind":"LongBytes","idx":4}]},"rowB":{"keys":[{"kind":"Decimal","idx":1,"val":"1"}],"cols":[{"kind":"Bytes","idx":2,"val":"AQIDBAUGBwgJCgsMDQ4PEA=="},{"kind":"LongBytes","idx":3},{"kind":"LongBytes","idx":4}]}}
+{"type":"Ext","isBin":true,"uuid":"086b90e0-bce0-43e4-9d2e-877eb55be45d","in":"rowA","col":3,"all":1,"num":0,"raw":"TE9ORyBSQVcgU0FNUExFIERBVEE="}
+{"type":"Ext","isBin":true,"uuid":"086b90e0-bce0-43e4-9d2e-877eb55be45d","in":"rowA","col":4,"all":1,"num":0,"raw":"QkxPQiBTQU1QTEUgREFUQQ=="}
+{"type":"Ext","isBin":true,"uuid":"086b90e0-bce0-43e4-9d2e-877eb55be45d","in":"rowB","col":3,"all":1,"num":0,"raw":"TE9ORyBSQVcgU0FNUExFIERBVEE="}
+{"type":"Ext","isBin":true,"uuid":"086b90e0-bce0-43e4-9d2e-877eb55be45d","in":"rowB","col":4,"all":1,"num":0,"raw":"QkxPQiBTQU1QTEUgREFUQQ=="}
+
+		[Mock.Conn] setAutoCommit(false)
+		[Mock.Conn] prepareStatement(sql=UPDATE TB_CLOB_DIFF SET C_CLOB = ?, S_KEY1 = ?, C_SIZE = ? WHERE S_KEY1 = ?)
+Mark:	[DBHandler: Changed] UPDATE TB_CLOB_DIFF SET C_CLOB = ?, S_KEY1 = ?, C_SIZE = ? WHERE S_KEY1 = ?
+	Memo:	[DBHandler: Changed] start new record 086b90e0-bce0-43e4-9d2e-877eb55be45d
+Note:	[Director]	086b90e0-bce0-43e4-9d2e-877eb55be45d
+	Memo:	[Director] initialize tasks with field-types
+Note:	[setField]	086b90e0-bce0-43e4-9d2e-877eb55be45d		S_KEY1(2) <--- rowA.keys.1 (normal)	{"kind":"Decimal","idx":1,"val":"1"}
+Note:	[setField]	086b90e0-bce0-43e4-9d2e-877eb55be45d		C_SIZE(3) <--- rowA.cols.2 (normal:binary)	{"kind":"Bytes","idx":2,"val":"AQIDBAUGBwgJCgsMDQ4PEA=="}
+Note:	[setField]	086b90e0-bce0-43e4-9d2e-877eb55be45d		S_KEY1(4) <--- rowB.keys.1 (normal)	{"kind":"Decimal","idx":1,"val":"1"}
+	Memo:	[DBHandler: Changed] start new Exts 086b90e0-bce0-43e4-9d2e-877eb55be45d
+	Memo:	[Route] Change
+		[Mock.Stmt] setString(2, 1)
+		[Mock.Stmt] setBytes(3, length=16)
+		[Mock.Stmt] setString(4, 1)
+	Memo:	[handleExt] Add.. uuid: 086b90e0-bce0-43e4-9d2e-877eb55be45d ( rowA.cols.3 ) : 0/1 C_CLOB(1) <--- rowA.cols.3 (large:binary) 
+Note:	[setExt]	086b90e0-bce0-43e4-9d2e-877eb55be45d.rowA.3	#1	C_CLOB(1) <--- rowA.cols.3 (large:binary)
+Mark:	[DBHandler: Changed] Adding to batch.(LOBs completed) 086b90e0-bce0-43e4-9d2e-877eb55be45d
+	Memo:	[DBHandler: Changed] Batch added : 086b90e0-bce0-43e4-9d2e-877eb55be45d
+	Memo:	[DBHandler: Changed] Batch count : 1
+	Memo:	[handleExt] Skip. uuid: 086b90e0-bce0-43e4-9d2e-877eb55be45d ( rowA.cols.4 ) : 0/1
+	Memo:	[handleExt] Skip. uuid: 086b90e0-bce0-43e4-9d2e-877eb55be45d ( rowB.cols.3 ) : 0/1
+	Memo:	[handleExt] Skip. uuid: 086b90e0-bce0-43e4-9d2e-877eb55be45d ( rowB.cols.4 ) : 0/1
+Note:	[TimeLog] [DBHandler: Changed] flush elapsed: 0.05 ms
+Note:	[DBHandler: Changed] flushed count : 0
+Note:	[TimeLog] [DBHandler: Changed] commit elapsed: 0.03 ms
+	Memo:	[Route] closeAll
+		[Mock.Stmt] setBinaryStream(1, 086b90e0-bce0-43e4-9d2e-877eb55be45d.rowA.3	#1	C_CLOB(1) <--- rowA.cols.3 (large:binary))
+		[Mock.Stmt] addBatch()
+		[Mock.Stmt] clearParameters()
+		[Mock.Stmt] executeBatch()
+		[Mock.Conn] commit()
+		[Mock.Stmt] close()
+		[Mock.Conn] close()
+```
+
+
+
 
 # [ 상세 ]
 
@@ -358,9 +527,9 @@ ORDER BY emp_id_num;                    -- 타입변환한 값으로 정렬
 * 실수형과 정수형간의 비교가 필요하면, sql문에서 형변환하도록 하자.
 
 
-> 타입에 대한 상식  
-> 1. 모든 타입들이 equal 비교가 가능한 것은 아니다.  
-> 2. 모든 타입들이 대소비교(정렬) 가능한 것은 아니다. (json을 생각해 보라)  
+> 타입에 대한 상식
+> 1. 모든 타입들이 equal 비교가 가능한 것은 아니다.
+> 2. 모든 타입들이 대소비교(정렬) 가능한 것은 아니다. (json을 생각해 보라)
 
 ## 2. 정렬 조건
 
@@ -398,8 +567,16 @@ ResultSet은 Cursor타입의 자료형으로,
 2. 지시자 자체를 저장할 방법을 제공하지 않으므로,
 row의 지시자들을 모으고, 구획회해서 처리하는** 동시처리는 불가능**하다. (구조적 제한)
 ```
-*일정 묶음단위로로 쪼개서 비교하는 동시적 처리는 불가능하다는 뜻
+* 일정 묶음단위로로 쪼개서 비교하는 동시적 처리는 불가능하다는 뜻
 * 동시처리가 필요하다면, `where절`로 Table의 범위를 나누어서 동시에 실행하자.
+*
+> 잡담)   
+> Cursor타입인 ResultSet에 병렬처리를 하려면,  
+> Row를 읽어서 memory에 적재해 둔 상태로 묶음/분할 처리를 해야 하는데,  
+> LOB컬럼타입의 경우, 매우 큰 용량이 필요하므로   
+> 여러 Row를 메모리적재가 곤란하다는 제한이 있다.  
+> DBMS vendor의 고육지책으로 나온 방식(ResultSet)으로 이해는 되지만  
+> 그만큼 한계도 뚜렷한 것 같다.
 
 ## 최적화
 
@@ -434,10 +611,15 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
 * 지연적재, 최소계산 방식을 적용하였으므로, SQL문과 설정에 따라 성능의 차이가 날 수 있다.
 
 
-* 성능 최적화를 위한 Tip (todo)
-```
-몇자 써볼 예정
-```
+* 성능 최적화를 위한 Tip
+1. 성능결정 요소를 잘 이해해라.
+    * DBMS의 처리성능, Network band, 대상 table의 key, Disk I/O를 쓸것인지 여부 등
+2. SQL 작성을 잘 해라.
+    * key를 적절히 사용하도록 하는 지 확인해라.
+    * key가 없다면, where / order by절의 컬럼 순서도 살펴봐라.
+3. 중간 Data에 불필요한 정보는 빼도록 해라.
+    * 중간 Data의 생성과 해석비용은 생각보다 크다.
+    * 불필요한 중간 Data는 버려라. 예를 들면, `같다고 확인된 record`는 보통 필요없을 테니, filter로 제거하면 된다.
 
 #### 지원컬럼 타입
 
@@ -446,77 +628,95 @@ Hash를 계산하기 위해 LOB전체 순회를 하는 것은 불필요함.
 * `BytesType`은 프로그램내에서 정의한 타입 wrapper이다.
 * 타입 wrapper를 사용한 이유는 java.sql.Types에 대응되는 DBMS 타입이 고정적이지 않아서 임.
 
+* Oralce은 기본 타입중 일부를 자신만의 고유한 TypeCode로 사용하는 짓을 한다. (바보짓)
+
+[ 일반 컬럼타입들 ]
 ```scala
-// 지원하는 java.sql.Types
-      Types.BIT             -> (BytesType,   getAsBytes),
-      Types.BOOLEAN         -> (BooleanType, getAsBoolean),
+val typeMap: Map[Int, (ColValType, Getter)] = Map(
 
-      // check Integer Type
-      Types.TINYINT         -> (IntType, getAsInt),
-      Types.SMALLINT        -> (IntType, getAsInt),
-      Types.INTEGER         -> (IntType, getAsInt),
-      Types.BIGINT          -> (LongType, getAsLong), // BigInt --> Long
+Types.BIT             -> (BytesType,   getAsBytes),               // -7 oracle.jdbc.OracleTypes.BIT
+Types.BOOLEAN         -> (BooleanType, getAsBoolean),             // 16 oracle.jdbc.OracleTypes.BOOLEAN
 
-      // check Real Type
-      Types.FLOAT           -> (DoubleType, getAsDouble),
-      Types.REAL            -> (DoubleType, getAsDouble),
-      Types.DOUBLE          -> (DoubleType, getAsDouble),
+// check Integer Type
+Types.TINYINT         -> (IntType, getAsInt),                     // -6 oracle.jdbc.OracleTypes.TINYINT
 
-      Types.DECIMAL         -> (DecimalType, getAsDecimal),
+Types.SMALLINT        -> (IntType, getAsInt),                     // 5 oracle.jdbc.OracleTypes.SMALLINT
+Types.INTEGER         -> (IntType, getAsInt),                     // 4 oracle.jdbc.OracleTypes.INTEGER
+Types.BIGINT          -> (LongType, getAsLong),                   // -5  oracle.jdbc.OracleTypes.BIGINT
 
-      // check String Type
-      Types.CHAR            -> (StringType, getAsString),
-      Types.VARCHAR         -> (StringType, getAsString),
-      Types.NCHAR           -> (StringType, getAsString),
-      Types.NVARCHAR        -> (StringType, getAsString),
+// check Real Type
+Types.FLOAT           -> (DoubleType, getAsDouble),               // 6 oracle.jdbc.OracleTypes.FLOAT
+Types.REAL            -> (DoubleType, getAsDouble),               // 7 oracle.jdbc.OracleTypes.REAL
+Types.DOUBLE          -> (DoubleType, getAsDouble),               // 8 oracle.jdbc.OracleTypes.DOUBLE
+Types.DECIMAL         -> (DecimalType, getAsDecimal),             // 3 oracle.jdbc.OracleTypes.DECIMAL
 
-      // check Long String Type
-      Types.LONGVARCHAR     -> (LongStringType, getAsLongString),
-      Types.LONGNVARCHAR    -> (LongStringType, getAsLongString),
+// check String Type
+Types.CHAR            -> (StringType, getAsString),               // 1 oracle.jdbc.OracleTypes.CHAR
+Types.VARCHAR         -> (StringType, getAsString),               // 12 oracle.jdbc.OracleTypes.VARCHAR
+Types.NCHAR           -> (StringType, getAsString),               // -15 oracle.jdbc.OracleTypes.NCHAR
+Types.NVARCHAR        -> (StringType, getAsString),               // -9 oracle.jdbc.OracleTypes.NVARCHAR
 
-      Types.CLOB            -> (LongStringType, getLobAsLongString),
-      Types.NCLOB           -> (LongStringType, getLobAsLongString),
+// check Long String Type
+Types.LONGVARCHAR     -> (LongStringType, getAsLongString),      // -1 oracle.jdbc.OracleTypes.LONGVARCHAR
+Types.LONGNVARCHAR    -> (LongStringType, getAsLongString),      // -16 oracle.jdbc.OracleTypes.LONGNVARCHAR
 
-      // check Binary Type
-      Types.BINARY          -> (BytesType, getAsBytes),
-      Types.VARBINARY       -> (BytesType, getAsBytes),
+Types.CLOB            -> (LongStringType, getLobAsLongString),   // 2005 oracle.jdbc.OracleTypes.CLOB
+Types.NCLOB           -> (LongStringType, getLobAsLongString),   // 2011 oracle.jdbc.OracleTypes.NCLOB
 
-      // check Long Binary Type
-      Types.LONGVARBINARY   -> (LongBytesType, getAsLongBytes),
-      Types.BLOB            -> (LongBytesType, getLobAsLongBytes),
+// check Binary Type
+Types.BINARY          -> (BytesType, getAsBytes),                // -2 oracle.jdbc.OracleTypes.BINARY
+Types.VARBINARY       -> (BytesType, getAsBytes),                // -3 oracle.jdbc.OracleTypes.VARBINARY
 
-      // check Time type
-      Types.DATE            -> (DateType, getAsDate),
-      Types.TIME            -> (TimeType, getAsTime),
-      Types.TIMESTAMP       -> (TimestampType, getAsTimestamp),
+// check Long Binary Type
+Types.LONGVARBINARY   -> (LongBytesType, getAsLongBytes),        // -4 oracle.jdbc.OracleTypes.LONGVARBINARY
 
-      Types.TIME_WITH_TIMEZONE        -> (OffTimeType, getAsOffsetTime),
-      Types.TIMESTAMP_WITH_TIMEZONE   -> (OffTimestampType, getAsOffsetDateTime),
+Types.BLOB            -> (LongBytesType, getLobAsLongBytes),     // 2004 oracle.jdbc.OracleTypes.BLOB
+
+// check Time type
+Types.DATE            -> (DateType, getAsDate),                   // 91 oracle.jdbc.OracleTypes.DATE
+Types.TIME            -> (TimeType, getAsTime),                   // 92 oracle.jdbc.OracleTypes.TIME
+Types.TIMESTAMP       -> (TimestampType, getAsTimestamp),         // 93 oracle.jdbc.OracleTypes.TIMESTAMP
+
+Types.TIME_WITH_TIMEZONE        -> (OffTimeType, getAsOffsetTime),              // 2013
+Types.TIMESTAMP_WITH_TIMEZONE   -> (OffTimestampType, getAsOffsetDateTime),     // 2014
+
+// idiot oracle :: special mapping code
+oracle.jdbc.OracleTypes.TIMESTAMPTZ -> (OffTimestampType, getAsOffsetDateTime),     // -101 :: Types.TIME_WITH_TIMEZONE(2013)
+oracle.jdbc.OracleTypes.TIMESTAMPLTZ -> (OffTimestampType, getAsOffsetDateTime),    // -102 :: no matching type
+oracle.jdbc.OracleTypes.BINARY_FLOAT -> (DoubleType, getAsDouble),                  // 100  :: no matching type
+oracle.jdbc.OracleTypes.BINARY_DOUBLE -> (DoubleType, getAsDouble),                 // 101  :: no matching type
+
+// todo :: support later
+//   SQLXML------- // Types.SQLXML // 2009 oracle.jdbc.OracleTypes.SQLXML
+//   JSON  ------- //              // 2016 oracle.jdbc.OracleTypes.JSON :: no matching type
+//   GEO   ------- //              // not found in oracle.jdbc library. need other oracle library.
+
+)
 ```
 
 * Type Note
   타입만으로 처리방식을 확정할 수 없는 사례
 ```scala
-   // Types.NUMERIC인 경우, 정수인지, 실수인지 타입만으로 알수 없으므로
-   // scale과 precision을 보고 처리할 타입을 정함.
     private def numericColType(cs: ColShape): (ColValType, Getter) = {
 
       require(cs.typeCode == Types.NUMERIC, s"not Numeric type : ${cs}")
 
+      // Types.NUMERIC인 경우, 정수인지, 실수인지 타입만으로 알수 없으므로
+      // scale과 precision을 보고 처리할 타입을 정함.
       val ret = if (cs.scale != 0)  { DecimalType -> getAsDecimal }
       else {
         if (cs.precision == 0)      { DecimalType -> getAsDecimal }
         else if (cs.precision > 18) { BigIntType -> getAsBigInt }
         else if (cs.precision <= 9) { IntType -> getAsInt }
         else                        { LongType -> getAsLong }
+        ret
       }
-      ret
     }
+
 ```
 
 ```scala
 // type wrapper
-
 case object BooleanType extends ColValType
 case object IntType extends ColValType
 case object LongType extends ColValType
@@ -530,8 +730,8 @@ case object OffTimeType extends ColValType
 case object OffTimestampType extends ColValType
 case object StringType extends ColValType
 case object BytesType extends ColValType
-case object LongStringType extends ColValType   // todo
-case object LongBytesType extends ColValType    // todo
+case object LongStringType extends ColValType   
+case object LongBytesType extends ColValType    
 
 ```
 
@@ -539,65 +739,76 @@ case object LongBytesType extends ColValType    // todo
 ##### Oracle SQL 타입과 java.sql.Types 매핑표 (표준 + 확장 포함)
 - **추가필요한 타입은 요청바람**
 - `?` 표시한 타입들은 아마도(?) 지원필요할 것 같은 비표준 컬럼타입들.
+- Oracle SQL 타입에 `**` 표시한 부분은 jdbc표준과 다른 타입코드 사용함.
 
-| OK  | Oracle SQL 타입                       | 대응되는 `java.sql.Types` | 비고 |
-|-----|-------------------------------------|----------------------------|------|
-|     | **문자형**                             |||
-| O   | CHAR, CHARACTER                     | `Types.CHAR` | 고정길이 문자열 |
-| O   | VARCHAR2, VARCHAR                   | `Types.VARCHAR` | 가변길이 문자열 |
-| O   | LONG                                | `Types.LONGVARCHAR` | 매우 긴 문자열 |
-| O   | NCHAR                               | `Types.NCHAR` | 유니코드 고정 문자열 |
-| O   | NVARCHAR2                           | `Types.NVARCHAR` | 유니코드 가변 문자열 |
-| O   | CLOB                                | `Types.CLOB` | 문자 대용량 객체 |
-| O   | NCLOB                               | `Types.NCLOB` | 유니코드 문자 대용량 객체 |
-|     | **숫자형**                             |||
-| O   | NUMBER, DECIMAL, NUMERIC            | `Types.NUMERIC`, `Types.DECIMAL`, 또는 `Types.INTEGER`, `Types.DOUBLE`, `Types.BIGINT` 등 | 정밀도/스케일에 따라 매핑 |
-| O   | FLOAT                               | `Types.FLOAT` | 부동소수점 |
-| O   | DOUBLE PRECISION                    | `Types.DOUBLE` | 배정밀도 부동소수점 |
-| O   | REAL                                | `Types.REAL` | 단정밀도 부동소수점 |
-| O   | BINARY_FLOAT                        | `Types.FLOAT` | 32비트 IEEE 부동소수점 (Oracle 확장) |
-| O   | BINARY_DOUBLE                       | `Types.DOUBLE` | 64비트 IEEE 부동소수점 (Oracle 확장) |
-|     | **날짜/시간형**                          |||
-| O   | DATE                                | `Types.DATE` 또는 `Types.TIMESTAMP` | Oracle DATE는 시간 포함 |
-| O   | TIMESTAMP                           | `Types.TIMESTAMP` | 초 단위 이하 정밀도 포함 |
-| O   | TIMESTAMP WITH TIME ZONE            | `Types.TIMESTAMP_WITH_TIMEZONE` | 타임존 포함 |
-| O   | TIMESTAMP WITH LOCAL TIME ZONE      | `Types.TIMESTAMP_WITH_LOCAL_TIMEZONE` | 세션 타임존 기준 |
-| ?   | INTERVAL YEAR TO MONTH              | `Types.OTHER` | Oracle 고유 타입 |
-| ?   | INTERVAL DAY TO SECOND              | `Types.OTHER` | Oracle 고유 타입 |
-|     | **이진형**                             |||
-| O   | RAW                                 | `Types.BINARY` 또는 `Types.VARBINARY` | 이진 데이터 |
-| O   | LONG RAW                            | `Types.LONGVARBINARY` | 긴 이진 데이터 |
-| O   | BLOB                                | `Types.BLOB` | 이진 대용량 객체 |
-| ?   | BFILE                               | `Types.OTHER` 또는 `OracleTypes.BFILE` | 외부 파일 참조 (읽기 전용) |
-|     | **객체 및 컬렉션형**                       |||
-|     | OBJECT, STRUCT (사용자 정의 타입)          | `Types.STRUCT` | 사용자 정의 객체 |
-|     | VARRAY, NESTED TABLE                | `Types.ARRAY` | 컬렉션 타입 |
-|     | REF                                 | `Types.REF` | 객체 참조 타입 |
-|     | REF CURSOR                          | `Types.REF_CURSOR` | 결과셋을 반환하는 커서 (JDBC 4.1+) |
-|     | ANYTYPE / ANYDATA / ANYDATASET      | `Types.OTHER` | Oracle 전용 동적 타입 |
-| ?   | XMLTYPE                             | `Types.SQLXML` (JDBC 4.0+) 또는 `Types.CLOB` | XML 데이터 (DOM 혹은 문자열 형태) |
-| ?   | JSON                                | `Types.SQLJSON` (JDBC 4.3+) 또는 `Types.CLOB` / `Types.VARCHAR` | Oracle 21c 이상에서 공식 지원 |
-|     | UROWID / ROWID                      | `Types.OTHER` 또는 `OracleTypes.ROWID` | 고유 로우 식별자 |
-|     | **공간(Spatial) / 위치정보형**             |||
-| ?   | SDO_GEOMETRY                        | `Types.STRUCT` | Oracle Spatial 타입 (좌표, 지오메트리 구조체) |
-| ?   | SDO_TOPO_GEOMETRY                   | `Types.STRUCT` | 위상지오메트리 |
-| ?   | SDO_GEORASTER                       | `Types.STRUCT` | 영상 데이터 |
-| ?   | SDO_POINT_TYPE                      | `Types.STRUCT` | 좌표값 구조체 |
-|     | **기타 특수형**                          |||
-|     | URITYPE, HTTPURITYPE                | `Types.VARCHAR` | URI 문자열 |
-|     | OPAQUE (예: SYS.ANYDATA, ORDAudio 등) | `Types.OTHER` | Oracle 확장 바이너리 타입 |
-|     | MLSLABEL                            | `Types.VARCHAR` | Oracle Label Security용 |
-|     | RAW MLSLABEL                        | `Types.BINARY` | 보안 라벨 RAW 버전 |
+| OK  | Oracle SQL 타입                    | 대응되는 `java.sql.Types`                                                                  | 비고 |
+|-----|----------------------------------|----------------------------------------------------------------------------------------|------|
+|     | **문자형**                          |                                                                                        ||
+| O   | CHAR, CHARACTER                  | `Types.CHAR`                                                                           | 고정길이 문자열 |
+| O   | VARCHAR2, VARCHAR                | `Types.VARCHAR`                                                                        | 가변길이 문자열 |
+| O   | LONG                             | `Types.LONGVARCHAR`                                                                    | 매우 긴 문자열 |
+| O   | NCHAR                            | `Types.NCHAR`                                                                          | 유니코드 고정 문자열 |
+| O   | NVARCHAR2                        | `Types.NVARCHAR`                                                                       | 유니코드 가변 문자열 |
+| O   | CLOB                             | `Types.CLOB`                                                                           | 문자 대용량 객체 |
+| O   | NCLOB                            | `Types.NCLOB`                                                                          | 유니코드 문자 대용량 객체 |
+|     | **숫자형**                          |                                                                                        ||
+| O   | NUMBER, DECIMAL, NUMERIC         | `Types.NUMERIC`, `Types.DECIMAL`, 또는 `Types.INTEGER`, `Types.DOUBLE`, `Types.BIGINT` 등 | 정밀도/스케일에 따라 매핑 |
+| O   | FLOAT                            | `Types.FLOAT`                                                                          | 부동소수점 |
+| O   | DOUBLE PRECISION                 | `Types.DOUBLE`                                                                         | 배정밀도 부동소수점 |
+| O   | REAL                             | `Types.REAL`                                                                           | 단정밀도 부동소수점 |
+| O   | BINARY_FLOAT`**`                  | `Types.FLOAT`                                                                          | 32비트 IEEE 부동소수점 (Oracle 확장) |
+| O   | BINARY_DOUBLE`**`                  | `Types.DOUBLE`                                                                         | 64비트 IEEE 부동소수점 (Oracle 확장) |
+|     | **날짜/시간형**                       |                                                                                        ||
+| O   | DATE                             | `Types.DATE` 또는 `Types.TIMESTAMP`                                                      | Oracle DATE는 시간 포함 |
+| O   | TIMESTAMP                        | `Types.TIMESTAMP`                                                                      | 초 단위 이하 정밀도 포함 |
+| O   | TIMESTAMP WITH TIME ZONE`**`       | `Types.TIMESTAMP_WITH_TIMEZONE`.                                                       | 타임존 포함 |
+| O   | TIMESTAMP WITH LOCAL TIME ZONE`**` | `Types.TIMESTAMP_WITH_LOCAL_TIMEZONE`                                                  | 세션 타임존 기준 |
+| ?   | INTERVAL YEAR TO MONTH           | `Types.OTHER`                                                                          | Oracle 고유 타입 |
+| ?   | INTERVAL DAY TO SECOND           | `Types.OTHER`                                                                          | Oracle 고유 타입 |
+|     | **이진형**                          |                                                                                        ||
+| O   | RAW                              | `Types.BINARY` 또는 `Types.VARBINARY`                                                    | 이진 데이터 |
+| O   | LONG RAW                         | `Types.LONGVARBINARY`                                                                  | 긴 이진 데이터 |
+| O   | BLOB                             | `Types.BLOB`                                                                           | 이진 대용량 객체 |
+| ?   | BFILE                            | `Types.OTHER` 또는 `OracleTypes.BFILE`                                                   | 외부 파일 참조 (읽기 전용) |
+|     | **객체 및 컬렉션형**                    |                                                                                        ||
+|     | OBJECT, STRUCT (사용자 정의 타입)       | `Types.STRUCT`                                                                         | 사용자 정의 객체 |
+|     | VARRAY, NESTED TABLE             | `Types.ARRAY`                                                                          | 컬렉션 타입 |
+|     | REF                              | `Types.REF`                                                                            | 객체 참조 타입 |
+|     | REF CURSOR                       | `Types.REF_CURSOR`                                                                     | 결과셋을 반환하는 커서 (JDBC 4.1+) |
+|     | ANYTYPE / ANYDATA / ANYDATASET   | `Types.OTHER`                                                                          | Oracle 전용 동적 타입 |
+| ?   | XMLTYPE                          | `Types.SQLXML` (JDBC 4.0+) 또는 `Types.CLOB`                                             | XML 데이터 (DOM 혹은 문자열 형태) |
+| ?   | JSON                             | `Types.SQLJSON` (JDBC 4.3+) 또는 `Types.CLOB` / `Types.VARCHAR`                          | Oracle 21c 이상에서 공식 지원 |
+|     | UROWID / ROWID                   | `Types.OTHER` 또는 `OracleTypes.ROWID`                                                   | 고유 로우 식별자 |
+|     | **공간(Spatial) / 위치정보형**          |                                                                                        ||
+| ?   | SDO_GEOMETRY                     | `Types.STRUCT`                                                                         | Oracle Spatial 타입 (좌표, 지오메트리 구조체) |
+| ?   | SDO_TOPO_GEOMETRY                | `Types.STRUCT`                                                                         | 위상지오메트리 |
+| ?   | SDO_GEORASTER                    | `Types.STRUCT`                                                                         | 영상 데이터 |
+| ?   | SDO_POINT_TYPE                   | `Types.STRUCT`                                                                         | 좌표값 구조체 |
+|     | **기타 특수형**                       |                                                                                        ||
+|     | URITYPE, HTTPURITYPE             | `Types.VARCHAR`                                                                        | URI 문자열 |
+|     | OPAQUE (예: SYS.ANYDATA, ORDAudio 등) | `Types.OTHER`                                                                          | Oracle 확장 바이너리 타입 |
+|     | MLSLABEL                         | `Types.VARCHAR`                                                                        | Oracle Label Security용 |
+|     | RAW MLSLABEL                     | `Types.BINARY`                                                                         | 보안 라벨 RAW 버전 |
 
-* 주의 : 타입의 중요성과 타입지원의 의미
+* 참고 : 타입의 중요성과 타입지원의 의미
 
 > URI는 uri-encoding으로 같은 값이 다른 문자열로 저장될 수 있다.
-> 
+>
 > URI타입인지 확인하는 기능은 (아직) 구현되어 있지 않으므로,  
 > 두 컬럼이 URITYPE 타입인 경우, Types.VARCHAR로 인식하여 문자열 비교를 하게 된다.
 > ( 희박하겠으나, 있을 수 있는 일)
-> 
+>
 > 마찬가지로, URI타입컬럼(현 버전은 Types.VARCHAR로 인식)과 문자열 컬럼을 비교도  
 > 문자열 비교방식으로 비교한다. (즉, 틀릴 수 있는 비교를 하게 된다)
- 
-  
+
+#### FAQ ?
+1. DB의 encoding ?
+  > 영향받지 않음. (jdbc/JVM의 encoding 방식에 따름 : UTF-16)
+  > endian ? 당연히 영향 받지 않음 (질문자체가 non-sense)
+   
+2. select `*` from table 같은 동적 조건을 제한하는 이유.
+  > 동적으로 결정되는 정보는 `그 정보가 항상 일관되게 같다`라는 가정이 충족되어야 한다. (멱등성이라고 한다.)  
+  > 이런 류의 편의 기능은 UI 수준에서 제공되어야 하는 기능이고, core기능에서는 허용하면 안되는 기능이다.(매우 상식적인 사항)
+
+3. any question ??
+
